@@ -1,3 +1,1 @@
-Version 1
-Work progress
-practice reset
+App is working
