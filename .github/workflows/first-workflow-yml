@@ -18,3 +18,8 @@ jobs:
 
       - name: Show Files
         run: ls -la
+- name: Show Files
+        run: ls -la
+
+      - name: Show Git Version
+        run: git --version
