@@ -1,0 +1,20 @@
+name: First Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Show Message
+        run: echo "GitHub Actions is running!"
+
+      - name: Show Files
+        run: ls -la
