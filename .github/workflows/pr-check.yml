@@ -13,5 +13,5 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Validate
-        run: echo "Pull request validation passed!"
+      - name: Intentionally Fail
+        run: exit 1
