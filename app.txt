@@ -1,3 +1,0 @@
-Version 1
-Work in progress
-practice resetCI/CD practice
