@@ -1,0 +1,870 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AWS DevOps B-424 Course - Techpro Education">
+  <title>AWS DevOps B-424 | Techpro Education</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    :root {
+      --bg: #080e1b;
+      --surface: #111c2e;
+      --text: #f3f6ff;
+      --muted: #a3b1c7;
+      --orange: #ff9900;
+      --cyan: #35d7ff;
+      --border: #26354b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .container {
+      width: min(1140px, 92%);
+      margin: auto;
+    }
+
+    /* Navigation */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8, 14, 27, .95);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 0;
+      gap: 20px;
+    }
+
+    .logo {
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: -.7px;
+    }
+
+    .logo span {
+      color: var(--orange);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      transition: .2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--orange);
+    }
+
+    .menu-btn {
+      display: none;
+      color: white;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 24px;
+      padding: 4px 12px;
+      cursor: pointer;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      border: 0;
+      padding: 13px 23px;
+      border-radius: 9px;
+      font-weight: 800;
+      font-size: 14px;
+      transition: transform .2s, background .2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+    }
+
+    .primary {
+      background: var(--orange);
+      color: #101827;
+    }
+
+    .secondary {
+      background: #1a2b43;
+      color: white;
+      border: 1px solid #41516a;
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 115px 0 105px;
+      background:
+        radial-gradient(ellipse at 80% 20%,
+          rgba(255,153,0,.13), transparent 43%),
+        radial-gradient(ellipse at 15% 75%,
+          rgba(53,215,255,.10), transparent 43%),
+        var(--bg);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .17;
+      pointer-events: none;
+      background-image:
+        linear-gradient(#406080 1px, transparent 1px),
+        linear-gradient(90deg, #406080 1px, transparent 1px);
+      background-size: 52px 52px;
+      mask-image: linear-gradient(to bottom, black, transparent);
+    }
+
+    .hero-inner {
+      position: relative;
+      text-align: center;
+      max-width: 850px;
+      margin: auto;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 7px 17px;
+      border: 1px solid #77551f;
+      background: rgba(255,153,0,.10);
+      border-radius: 30px;
+      color: var(--orange);
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 2px;
+      margin-bottom: 25px;
+    }
+
+    .hero h1 {
+      font-size: clamp(42px, 7vw, 82px);
+      line-height: 1.1;
+      letter-spacing: -3px;
+      font-weight: 900;
+    }
+
+    .gradient-text {
+      background: linear-gradient(95deg, #ff9900, #ffd477);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 650px;
+      margin: 25px auto 33px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 13px;
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 42px;
+    }
+
+    .pill {
+      border: 1px solid var(--border);
+      background: #111e31;
+      padding: 8px 17px;
+      font-size: 13px;
+      border-radius: 30px;
+      color: #c8d7ed;
+    }
+
+    /* Sections */
+    section {
+      padding: 88px 0;
+    }
+
+    .section-head {
+      text-align: center;
+      max-width: 670px;
+      margin: 0 auto 45px;
+    }
+
+    .section-head small {
+      color: var(--orange);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 800;
+    }
+
+    .section-head h2 {
+      margin: 12px 0;
+      font-size: clamp(29px, 4vw, 43px);
+      letter-spacing: -1.4px;
+    }
+
+    .section-head p {
+      color: var(--muted);
+    }
+
+    /* Stats */
+    .stats {
+      background: #0d1727;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 30px 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      text-align: center;
+    }
+
+    .stat strong {
+      font-size: 25px;
+      color: var(--orange);
+    }
+
+    .stat p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    /* Course cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .card {
+      position: relative;
+      background: linear-gradient(145deg, #142239, #0e1828);
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: .3s;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: var(--orange);
+      box-shadow: 0 15px 35px rgba(0,0,0,.2);
+    }
+
+    .card .symbol {
+      display: grid;
+      place-items: center;
+      width: 57px;
+      height: 57px;
+      margin-bottom: 22px;
+      background: rgba(255,153,0,.12);
+      border: 1px solid rgba(255,153,0,.24);
+      border-radius: 13px;
+      font-size: 27px;
+    }
+
+    .card h3 {
+      font-size: 19px;
+      margin-bottom: 9px;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .card .tag {
+      display: inline-block;
+      margin-top: 20px;
+      font-size: 11px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 800;
+    }
+
+    /* Terminal */
+    .terminal {
+      max-width: 860px;
+      margin: 0 auto;
+      border: 1px solid #33425c;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 25px 65px rgba(0,0,0,.35);
+    }
+
+    .terminal-top {
+      background: #253147;
+      padding: 13px 17px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .dot {
+      height: 12px;
+      width: 12px;
+      border-radius: 50%;
+      background: #ff5f57;
+    }
+
+    .dot:nth-child(2) { background: #febc2e; }
+    .dot:nth-child(3) { background: #28c840; }
+
+    .terminal-top span {
+      color: #c2cee1;
+      font-size: 12px;
+      margin-left: 15px;
+    }
+
+    .terminal-body {
+      background: #080f1a;
+      padding: 27px;
+      font: 14px/1.95 Consolas, monospace;
+      overflow-x: auto;
+    }
+
+    .terminal-body pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .green { color: #7aebaa; }
+    .orange { color: var(--orange); }
+    .dim { color: #8496ad; }
+    .cyan { color: var(--cyan); }
+
+    /* Roadmap */
+    .roadmap {
+      max-width: 810px;
+      margin: auto;
+      border-left: 2px solid #32445b;
+      padding-left: 29px;
+    }
+
+    .step {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 22px;
+      margin-bottom: 17px;
+      border-radius: 12px;
+    }
+
+    .step::before {
+      content: "";
+      position: absolute;
+      top: 28px;
+      left: -39px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 0 5px var(--bg);
+    }
+
+    .step span {
+      color: var(--orange);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .step h3 {
+      margin: 5px 0;
+    }
+
+    .step p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* CTA */
+    .cta {
+      border: 1px solid #7e531b;
+      background: linear-gradient(130deg, #211b16, #101d30);
+      border-radius: 24px;
+      text-align: center;
+      padding: 65px 25px;
+    }
+
+    .cta h2 {
+      font-size: clamp(30px, 4vw, 43px);
+      margin-bottom: 12px;
+    }
+
+    .cta p {
+      color: var(--muted);
+      margin-bottom: 27px;
+    }
+
+    /* Footer */
+    footer {
+      padding: 30px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: #8c9bb2;
+      font-size: 13px;
+    }
+
+    footer strong {
+      color: var(--orange);
+    }
+
+    /* Mobile */
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .menu-btn {
+        display: block;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: #101b2d;
+        padding: 25px;
+        flex-direction: column;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding: 80px 0;
+      }
+
+      .hero h1 {
+        letter-spacing: -1.5px;
+      }
+
+      .terminal-body {
+        font-size: 12px;
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header>
+    <nav class="container">
+      <a href="#home" class="logo">TECHPRO<span>EDUCATION</span></a>
+
+      <button class="menu-btn"
+              aria-label="Toggle navigation"
+              aria-expanded="false"
+              aria-controls="navLinks"
+              onclick="toggleMenu()">☰</button>
+
+      <div class="nav-links" id="navLinks">
+        <a href="#home">Home</a>
+        <a href="#technologies">Technologies</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#lab">Live Lab</a>
+        <a href="#contact" class="btn primary">Get Started</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <main>
+    <section class="hero" id="home">
+      <div class="container hero-inner">
+        <div class="eyebrow">WELCOME TO BATCH B-424</div>
+
+        <h1>
+          AWS & <span class="gradient-text">DEVOPS</span><br>
+          ENGINEERING
+        </h1>
+
+        <p>
+          From Linux fundamentals to Cloud Infrastructure,
+          CI/CD pipelines, Docker, Kubernetes, Terraform
+          and real-world DevOps automation.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#technologies" class="btn primary">
+            Explore Course ↗
+          </a>
+          <a href="#lab" class="btn secondary">
+            View Live Lab &gt;_
+          </a>
+        </div>
+
+        <div class="pills">
+          <span class="pill">☁️ Amazon Web Services</span>
+          <span class="pill">⚙️ DevOps Automation</span>
+          <span class="pill">🐳 Containers</span>
+          <span class="pill">🚀 CI/CD</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Highlights -->
+    <div class="stats">
+      <div class="container stats-grid">
+        <div class="stat">
+          <strong>B-424</strong>
+          <p>COURSE BATCH</p>
+        </div>
+        <div class="stat">
+          <strong>AWS</strong>
+          <p>CLOUD PLATFORM</p>
+        </div>
+        <div class="stat">
+          <strong>DevOps</strong>
+          <p>AUTOMATION & DELIVERY</p>
+        </div>
+        <div class="stat">
+          <strong>Hands-On</strong>
+          <p>PRACTICAL LEARNING</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technologies -->
+    <section id="technologies">
+      <div class="container">
+        <div class="section-head">
+          <small>What We Learn</small>
+          <h2>Technologies We Explore</h2>
+          <p>
+            Discover the essential tools used by modern
+            Cloud and DevOps engineers.
+          </p>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="symbol">☁️</div>
+            <h3>Amazon Web Services</h3>
+            <p>
+              EC2, S3, IAM, VPC, Load Balancers,
+              Auto Scaling and cloud infrastructure.
+            </p>
+            <span class="tag">Cloud Computing</span>
+          </div>
+
+          <div class="card">
+            <div class="symbol">🐧</div>
+            <h3>Linux Administration</h3>
+            <p>
+              Linux commands, permissions, shell scripts,
+              networking and system services.
+            </p>
+            <span class="tag">Operating Systems</span>
+          </div>
+
+          <div class="card">
+            <div class="symbol">🐳</div>
+            <h3>Docker</h3>
+            <p>
+              Build container images, manage containers
+              and deploy portable applications.
+            </p>
+            <span class="tag">Containerization</span>
+          </div>
+
+          <div class="card">
+            <div class="symbol">☸️</div>
+            <h3>Kubernetes</h3>
+            <p>
+              Pods, Deployments, Services, Ingress,
+              scaling and Amazon EKS.
+            </p>
+            <span class="tag">Orchestration</span>
+          </div>
+
+          <div class="card">
+            <div class="symbol">🔄</div>
+            <h3>Jenkins & CI/CD</h3>
+            <p>
+              Automate building, testing and deploying
+              applications using delivery pipelines.
+            </p>
+            <span class="tag">Automation</span>
+          </div>
+
+          <div class="card">
+            <div class="symbol">🏗️</div>
+            <h3>Terraform</h3>
+            <p>
+              Create and manage cloud infrastructure
+              using Infrastructure as Code.
+            </p>
+            <span class="tag">Infrastructure as Code</span>
+          </div>
+
+          <div class="card">
+            <div class="symbol">🌿</div>
+            <h3>Git & GitHub</h3>
+            <p>
+              Track code changes, collaborate and
+              manage version-controlled projects.
+            </p>
+            <span class="tag">Version Control</span>
+          </div>
+
+          <div class="card">
+            <div class="symbol">📊</div>
+            <h3>Monitoring</h3>
+            <p>
+              Monitor infrastructure and applications
+              using Prometheus, Grafana and CloudWatch.
+            </p>
+            <span class="tag">Observability</span>
+          </div>
+
+          <div class="card">
+            <div class="symbol">🛡️</div>
+            <h3>DevOps Security</h3>
+            <p>
+              Understand IAM policies, security groups,
+              secrets and secure deployment practices.
+            </p>
+            <span class="tag">Cloud Security</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terminal -->
+    <section id="lab" style="background:#0d1727">
+      <div class="container">
+        <div class="section-head">
+          <small>Hands-On Experience</small>
+          <h2>Welcome to Our Cloud Terminal</h2>
+          <p>
+            Practice real commands and build confidence
+            working with Linux and cloud environments.
+          </p>
+        </div>
+
+        <div class="terminal">
+          <div class="terminal-top">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <span>ubuntu@techpro-b424:~</span>
+          </div>
+
+          <div class="terminal-body">
+<pre><span class="green">ubuntu@techpro-b424</span>:<span class="cyan">~</span>$ whoami
+ubuntu
+
+<span class="green">ubuntu@techpro-b424</span>:<span class="cyan">~</span>$ echo "Welcome to AWS DevOps B-424"
+<span class="orange">Welcome to AWS DevOps B-424</span>
+
+<span class="green">ubuntu@techpro-b424</span>:<span class="cyan">~</span>$ docker --version
+<span class="dim"># Check the installed Docker version</span>
+
+<span class="green">ubuntu@techpro-b424</span>:<span class="cyan">~</span>$ kubectl get pods
+<span class="dim"># List pods in the current Kubernetes namespace</span>
+
+<span class="green">ubuntu@techpro-b424</span>:<span class="cyan">~</span>$ terraform version
+<span class="dim"># Display the Terraform CLI version</span>
+
+<span class="green">ubuntu@techpro-b424</span>:<span class="cyan">~</span>$ <span class="orange">▌</span></pre>
+          </div>
+        </div>
+
+        <p style="text-align:center;color:#8798ae;font-size:12px;margin-top:15px">
+          Terminal illustration — commands are examples, not executed in the browser.
+        </p>
+      </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section id="roadmap">
+      <div class="container">
+        <div class="section-head">
+          <small>Learning Path</small>
+          <h2>Our DevOps Learning Journey</h2>
+          <p>
+            A progressive path from foundational
+            administration skills to cloud-native automation.
+          </p>
+        </div>
+
+        <div class="roadmap">
+          <div class="step">
+            <span>STAGE 01</span>
+            <h3>Linux & Networking Foundations</h3>
+            <p>
+              Learn the command line, shell scripting,
+              services, DNS, SSH and networking essentials.
+            </p>
+          </div>
+
+          <div class="step">
+            <span>STAGE 02</span>
+            <h3>AWS Cloud Infrastructure</h3>
+            <p>
+              Work with EC2, S3, IAM, VPC,
+              security groups and networking components.
+            </p>
+          </div>
+
+          <div class="step">
+            <span>STAGE 03</span>
+            <h3>Automation & Infrastructure as Code</h3>
+            <p>
+              Use Git, Ansible, Terraform and
+              AWS CloudFormation.
+            </p>
+          </div>
+
+          <div class="step">
+            <span>STAGE 04</span>
+            <h3>Containers & Kubernetes</h3>
+            <p>
+              Build Docker images and orchestrate
+              applications with Kubernetes and Amazon EKS.
+            </p>
+          </div>
+
+          <div class="step">
+            <span>STAGE 05</span>
+            <h3>CI/CD & Monitoring</h3>
+            <p>
+              Implement Jenkins pipelines and monitor
+              systems using Prometheus and Grafana.
+            </p>
+          </div>
+
+          <div class="step">
+            <span>STAGE 06</span>
+            <h3>Final DevOps Project</h3>
+            <p>
+              Combine cloud services, version control,
+              infrastructure automation and deployment
+              into one practical project.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact">
+      <div class="container">
+        <div class="cta">
+          <div class="eyebrow">AWS DEVOPS • B-424</div>
+          <h2>Build. Automate. Deploy.</h2>
+          <p>
+            Learn today. Practice tomorrow.
+            Build your future in Cloud and DevOps Engineering.
+          </p>
+          <a href="https://techproeducation.de/"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="btn primary">
+            Visit Techpro Education ↗
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>
+        © <span id="year"></span>
+        <strong>Techpro Education</strong> |
+        AWS DevOps Engineering — Batch B-424
+      </p>
+      <p>Learn • Build • Automate • Deploy</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('navLinks');
+      const button = document.querySelector('.menu-btn');
+      const open = menu.classList.toggle('active');
+
+      button.setAttribute('aria-expanded', String(open));
+    }
+
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('navLinks')
+          .classList.remove('active');
+
+        document.querySelector('.menu-btn')
+          .setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    document.getElementById('year').textContent =
+      new Date().getFullYear();
+  </script>
+
+</body>
+</html>
