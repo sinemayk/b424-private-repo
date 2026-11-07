@@ -1,0 +1,369 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  WordPress on Amazon Linux 2023 EC2 with
+  Single-AZ RDS MySQL database.
+
+# ==========================================
+# PARAMETERS
+# ==========================================
+
+Parameters:
+
+  KeyPairName:
+    Description: Select an existing EC2 Key Pair
+    Type: AWS::EC2::KeyPair::KeyName
+
+  InstanceType:
+    Description: Select EC2 instance type
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+
+  SSHLocation:
+    Description: >
+      Your public IP CIDR for SSH (e.g. 1.2.3.4/32)
+    Type: String
+
+  LatestAmiId:
+    Description: Latest Amazon Linux 2023 AMI
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+
+# ==========================================
+# NETWORK
+# ==========================================
+
+Resources:
+
+  WordPressVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: TechPro-VPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref WordPressVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  # Public subnet for EC2
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WordPressVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: TechPro-Public-Subnet
+
+  # Private subnet for RDS - AZ 1
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WordPressVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: TechPro-Private-Subnet-1
+
+  # Second private subnet required by RDS
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WordPressVPC
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: TechPro-Private-Subnet-2
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref WordPressVPC
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+# ==========================================
+# SECURITY GROUPS
+# ==========================================
+
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP and restricted SSH
+      VpcId: !Ref WordPressVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SSHLocation
+
+      Tags:
+        - Key: Name
+          Value: TechPro-EC2-SG
+
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow MySQL from WordPress EC2
+      VpcId: !Ref WordPressVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref EC2SecurityGroup
+
+      Tags:
+        - Key: Name
+          Value: TechPro-RDS-SG
+
+# ==========================================
+# RDS MYSQL
+# ==========================================
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: WordPress RDS subnets
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+
+  WordPressDatabase:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      Engine: mysql
+
+      DBInstanceClass: db.t3.micro
+      AllocatedStorage: 20
+      StorageType: gp3
+      StorageEncrypted: true
+
+      DBName: techprodetabase
+      MasterUsername: wpadmin
+      ManageMasterUserPassword: true
+
+      MultiAZ: false
+      AvailabilityZone: !Select [0, !GetAZs '']
+
+      PubliclyAccessible: false
+
+      DBSubnetGroupName: !Ref DBSubnetGroup
+
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+
+      BackupRetentionPeriod: 1
+
+      Tags:
+        - Key: Name
+          Value: TechPro-WordPress-MySQL
+
+# ==========================================
+# EC2 IAM ROLE
+# ==========================================
+
+  WordPressEC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+      Policies:
+        - PolicyName: ReadRDSSecret
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !GetAtt WordPressDatabase.MasterUserSecret.SecretArn
+
+  WordPressInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref WordPressEC2Role
+
+# ==========================================
+# EC2 + WORDPRESS USER DATA
+# ==========================================
+
+  WordPressEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyPairName
+
+      SubnetId: !Ref PublicSubnet
+
+      SecurityGroupIds:
+        - !Ref EC2SecurityGroup
+
+      IamInstanceProfile: !Ref WordPressInstanceProfile
+
+      Tags:
+        - Key: Name
+          Value: TechPro-WordPress-EC2
+
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+
+          dnf update -y
+          dnf install -y httpd php php-mysqlnd wget
+          dnf install -y php-gd php-xml php-mbstring
+
+          systemctl enable httpd
+          systemctl start httpd
+
+          cd /var/www/html
+
+          wget https://wordpress.org/latest.tar.gz
+          tar -xzf latest.tar.gz
+          cp -r wordpress/* /var/www/html/
+
+          rm -rf wordpress
+          rm -rf latest.tar.gz
+
+          chmod -R 755 wp-content
+          chown -R apache:apache wp-content
+
+          # Configure WordPress to use RDS MySQL.
+          # Read password securely from Secrets Manager.
+
+          python3 - <<'PY'
+          import json
+          import secrets
+          import subprocess
+          from pathlib import Path
+
+          result = subprocess.check_output(
+              [
+                  "aws", "secretsmanager", "get-secret-value",
+                  "--secret-id",
+                  "${WordPressDatabase.MasterUserSecret.SecretArn}",
+                  "--region", "${AWS::Region}",
+                  "--query", "SecretString",
+                  "--output", "text"
+              ],
+              text=True
+          )
+
+          credentials = json.loads(result)
+
+          config = Path(
+              "/var/www/html/wp-config-sample.php"
+          ).read_text()
+
+          def php_escape(value):
+              return str(value).replace(
+                  "\\", "\\\\"
+              ).replace("'", "\\'")
+
+          replacements = {
+              "database_name_here": "techprodetabase",
+              "username_here": credentials["username"],
+              "password_here": credentials["password"],
+              "localhost": "${WordPressDatabase.Endpoint.Address}"
+          }
+
+          for old, new in replacements.items():
+              config = config.replace(
+                  old, php_escape(new), 1
+              )
+
+          # Generate unique WordPress security keys.
+          for _ in range(8):
+              config = config.replace(
+                  "put your unique phrase here",
+                  secrets.token_urlsafe(48),
+                  1
+              )
+
+          Path(
+              "/var/www/html/wp-config.php"
+          ).write_text(config)
+          PY
+
+          chown root:apache /var/www/html/wp-config.php
+          chmod 640 /var/www/html/wp-config.php
+
+          systemctl restart httpd
+
+# ==========================================
+# OUTPUTS
+# ==========================================
+
+Outputs:
+
+  WordPressURL:
+    Description: WordPress installation URL
+    Value: !Sub 'http://${WordPressEC2.PublicDnsName}'
+
+  EC2PublicIP:
+    Description: Public IP of EC2
+    Value: !GetAtt WordPressEC2.PublicIp
+
+  EC2InstanceId:
+    Description: EC2 instance ID
+    Value: !Ref WordPressEC2
+
+  RDSEndpoint:
+    Description: MySQL RDS endpoint
+    Value: !GetAtt WordPressDatabase.Endpoint.Address
+
+  RDSDatabaseName:
+    Description: WordPress database name
+    Value: techprodetabase
+
+  RDSMasterSecretArn:
+    Description: Secret containing RDS credentials
+    Value: !GetAtt WordPressDatabase.MasterUserSecret.SecretArn
