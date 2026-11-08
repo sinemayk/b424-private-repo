@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+  This template creates an EC2 instance with a security group allowing HTTP and SSH access.
+Parameters:
+  MyKeyPair:
+    Description: Enter your key pair name
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: linux
+Resources:
+  MYSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: This Allows port 22 and 80.
+      GroupName: Sec-Grp-CFN
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+      Tags:
+        - Key: Name
+          Value: Sec-Grp-By-CFN
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0157af9aea2eef346
+      InstanceType: t2.micro
+      KeyName: !Ref MyKeyPair
+      SecurityGroups:
+        - !Ref MYSecurityGroup
+      Tags:
+        - Key: Name
+          Value: My-EC2-Instance
+      UserData: !Base64 |
+        #! /bin/bash
+        dnf update -y
+        dnf install nginx -y
+        dnf install git -y
+        systemctl start nginx
+        cd /usr/share/nginx/html
+        git clone https://github.com/techproedu/designer.git
+        chmod -R 777 /usr/share/nginx/html
+        rm index.html
+        cp -R ./designer/. .
+        systemctl restart nginx
+        systemctl enable nginx
+Outputs:
+  EC2PublicDNS:
+    Description: EC2 instance DNS address
+    Value: !Sub
+      - http://${PublicAddress}
+      - PublicAddress: !GetAtt MyInstance.PublicDnsName
