@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  This template creates; VPC , 2 Subnets (Public,Private), 2 Security Group, Add Route Tables, 2 Launch Instance (Public,Private)
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: ziya
+
+Resources:
+  VPCCNF:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 172.16.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags: 
+        - Key: 'Name'
+          Value: 'Ziya'
+  
+  IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: 
+        - Key: 'Name'
+          Value: 'MyInternetGateway'
+
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPCCNF
+      InternetGatewayId: !Ref IGW
+  
+  Public1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 172.16.1.0/24
+      VpcId: !Ref VPCCNF
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: 'Name'
+          Value: 'Ziya'
+
+  Private1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 172.16.2.0/24
+      VpcId: !Ref VPCCNF
+      Tags: 
+        - Key: 'Name'
+          Value: 'Ziya'
+  
+  PublicRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCCNF
+      Tags: 
+        - Key: 'Name'
+          Value: 'Ziya'
+  
+  PrivateRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCCNF
+      Tags: 
+        - Key: 'Name'
+          Value: 'Ziya'
+
+  PublicRTASS:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRT
+      SubnetId: !Ref Public1a
+
+  PrivateRTASS:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRT
+      SubnetId: !Ref Private1a
+
+  MyRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRT
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref IGW
+
+  PublicEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0e9107ed11be76fde
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+        - !Ref MYSECGRP
+      SubnetId: !Ref Public1a
+      Tags: 
+        - Key: 'Name'
+          Value: 'Ziya'
+
+  PrivateEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0e9107ed11be76fde
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+        - !Ref MYSECGRP
+      SubnetId: !Ref Private1a
+      Tags: 
+        - Key: 'Name'
+          Value: 'Ziya'
+
+  MYSECGRP:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH 22 # Required
+      GroupName: SSH Only
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPCCNF
